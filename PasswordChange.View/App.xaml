@@ -1,0 +1,9 @@
+﻿<Application x:Class="PasswordChange.View.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:PasswordChange.ViewModel;assembly=PasswordChange.ViewModel"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+            <vm:ViewModelLocator x:Key="VML" />
+    </Application.Resources>
+</Application>
