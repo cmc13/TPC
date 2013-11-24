@@ -162,26 +162,26 @@ namespace PasswordChange.ViewModel
 
         private async void ChangePassword()
         {
-            string originalPassword = Password;
+            string originalPassword = this.Password;
             string currentPassword = originalPassword;
             string newPassword = "";
             Random rand = new Random();
 
             try
             {
-                TimesChanged = 0;
-                BusyStatus = string.Format("{0}/{1}", TimesChanged, TimesToChange);
-                IsBusy = true;
+                this.TimesChanged = 0;
+                this.BusyStatus = string.Format("{0}/{1}", this.TimesChanged, this.TimesToChange);
+                this.IsBusy = true;
 
-                int delay = Convert.ToInt32((double)Delay * 1000);
+                int localDelay = Convert.ToInt32((double)Delay * 1000);
                 for (int count = 0; count < TimesToChange; ++count)
                 {
                     newPassword = originalPassword + count.ToString();
-                    await service.ChangePassword(UserName, currentPassword, newPassword);
+                    await this.service.ChangePassword(this.UserName, currentPassword, newPassword);
                     currentPassword = newPassword;
 
-                    TimesChanged = count + 1;
-                    BusyStatus = string.Format("{0}/{1}", TimesChanged, TimesToChange);
+                    this.TimesChanged = count + 1;
+                    this.BusyStatus = string.Format("{0}/{1}", this.TimesChanged, this.TimesToChange);
 
                     if (RandomizeDelay)
                     {
@@ -191,19 +191,19 @@ namespace PasswordChange.ViewModel
                         else // more than delay
                             multiplier = (rand.NextDouble() * 4) + 1;
 
-                        delay = Convert.ToInt32((double)Delay * multiplier * 1000);
+                        localDelay = Convert.ToInt32((double)this.Delay * multiplier * 1000);
                     }
 
-                    if (delay > 0)
-                        await service.Sleep(delay);
+                    if (localDelay > 0)
+                        await this.service.Sleep(localDelay);
                 }
 
                 // Change back to original password
                 newPassword = originalPassword;
-                await service.ChangePassword(UserName, currentPassword, newPassword);
+                await this.service.ChangePassword(this.UserName, currentPassword, newPassword);
 
-                BusyStatus = "Done";
-                IsBusy = false;
+                this.BusyStatus = "Done";
+                this.IsBusy = false;
             }
             catch (Exception ex)
             {
@@ -212,7 +212,7 @@ namespace PasswordChange.ViewModel
             }
             finally
             {
-                Password = "";
+                this.Password = "";
             }
         }
     }
