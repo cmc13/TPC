@@ -11,112 +11,20 @@ namespace PasswordChange.ViewModel
     [Export]
     public class PasswordChangeViewModel : ViewModelBase
     {
-        #region Command Definitions
+        #region Private Data Members
 
-        public RelayCommand GoCommand { get; private set; }
-
-        #endregion
-
-        #region Public Property Definitions
-
-        private string _userName;
-        public string UserName
-        {
-            get { return _userName; }
-            set
-            {
-                _userName = value;
-                RaisePropertyChanged("UserName");
-                GoCommand.RaiseCanExecuteChanged();
-            }
-        }
-
-        private string _password = "";
-        public string Password
-        {
-            get { return _password; }
-            set
-            {
-                _password = value;
-                RaisePropertyChanged("Password");
-                GoCommand.RaiseCanExecuteChanged();
-            }
-        }
-
-        private int _timesToChange = 30;
-        public int TimesToChange
-        {
-            get { return _timesToChange; }
-            set
-            {
-                _timesToChange = value;
-                RaisePropertyChanged("TimesToChange");
-            }
-        }
-
-        private decimal _delay = 1.0m;
-        public decimal Delay
-        {
-            get { return _delay; }
-            set
-            {
-                _delay = value;
-                RaisePropertyChanged("Delay");
-            }
-        }
-
-        private bool _isBusy = false;
-        public bool IsBusy
-        {
-            get { return _isBusy; }
-            set
-            {
-                _isBusy = value;
-                RaisePropertyChanged("IsBusy");
-            }
-        }
-
-        private string _busyStatus = "";
-        public string BusyStatus
-        {
-            get { return _busyStatus; }
-            set
-            {
-                _busyStatus = value;
-                RaisePropertyChanged("BusyStatus");
-            }
-        }
-
-        private int _timesChanged;
-        public int TimesChanged
-        {
-            get { return _timesChanged; }
-            set
-            {
-                _timesChanged = value;
-                RaisePropertyChanged("TimesChanged");
-            }
-        }
-
-        private bool _randomizeDelay;
-        public bool RandomizeDelay
-        {
-            get { return _randomizeDelay; }
-            set
-            {
-                _randomizeDelay = value;
-                RaisePropertyChanged("RandomizeDelay");
-            }
-        }
+        private readonly IHelperService service;
+        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        private string userName;
+        private string password = "";
+        private int timesToChange = 30;
+        private decimal delay = 1.0m;
+        private bool randomizeDelay;
+        private bool isBusy = false;
+        private string busyStatus = "";
+        private int timesChanged;
 
         #endregion
-
-        private readonly IHelperService _service;
-
-        private static Logger Log
-        {
-            get { return LogManager.GetCurrentClassLogger(); }
-        }
 
         #region Constructor Definition
 
@@ -126,15 +34,128 @@ namespace PasswordChange.ViewModel
             if (helperService == null)
                 throw new ArgumentNullException("helperService");
 
-            _service = helperService;
+            this.service = helperService;
 
-            _userName = _service.GetDefaultUserName();
+            this.userName = this.service.GetDefaultUserName();
 
-            if (!_service.IsWhiteListedUserName(_userName))
-                throw new InvalidOperationException("TPC failed to initialize...");
+            this.GoCommand = new RelayCommand(ChangePassword,
+                () => !string.IsNullOrEmpty(this.UserName) && !string.IsNullOrEmpty(this.Password));
+        }
 
-            GoCommand = new RelayCommand(ChangePassword,
-                () => !string.IsNullOrEmpty(UserName) && !string.IsNullOrEmpty(Password));
+        #endregion
+
+        #region Command Definitions
+
+        public RelayCommand GoCommand { get; private set; }
+
+        #endregion
+
+        #region Public Property Definitions
+
+        public string UserName
+        {
+            get { return this.userName; }
+            set
+            {
+                if (this.userName != value)
+                {
+                    this.userName = value;
+                    base.RaisePropertyChanged(() => this.UserName);
+                    this.GoCommand.RaiseCanExecuteChanged();
+                }
+            }
+        }
+
+        public string Password
+        {
+            get { return this.password; }
+            set
+            {
+                if (this.password != value)
+                {
+                    this.password = value;
+                    base.RaisePropertyChanged(() => this.Password);
+                    this.GoCommand.RaiseCanExecuteChanged();
+                }
+            }
+        }
+
+        public int TimesToChange
+        {
+            get { return this.timesToChange; }
+            set
+            {
+                if (this.timesToChange != value)
+                {
+                    this.timesToChange = value;
+                    base.RaisePropertyChanged(() => this.TimesToChange);
+                }
+            }
+        }
+
+        public decimal Delay
+        {
+            get { return this.delay; }
+            set
+            {
+                if (this.delay != value)
+                {
+                    this.delay = value;
+                    base.RaisePropertyChanged(() => this.Delay);
+                }
+            }
+        }
+
+        public bool IsBusy
+        {
+            get { return this.isBusy; }
+            set
+            {
+                if (this.isBusy != value)
+                {
+                    this.isBusy = value;
+                    base.RaisePropertyChanged(() => this.IsBusy);
+                }
+            }
+        }
+
+        public string BusyStatus
+        {
+            get { return this.busyStatus; }
+            set
+            {
+                if (this.busyStatus != value)
+                {
+                    this.busyStatus = value;
+                    base.RaisePropertyChanged(() => this.BusyStatus);
+                }
+            }
+        }
+
+        public int TimesChanged
+        {
+            get { return this.timesChanged; }
+            set
+            {
+                if (this.timesToChange != value)
+                {
+                    this.timesChanged = value;
+                    base.RaisePropertyChanged(() => this.TimesChanged);
+                }
+            }
+        }
+
+        public bool RandomizeDelay
+        {
+            get { return this.randomizeDelay; }
+            set
+            {
+                if (this.randomizeDelay != value)
+                {
+                    this.randomizeDelay = value;
+                    base.RaisePropertyChanged(() => this.RandomizeDelay);
+                }
+            }
         }
 
         #endregion
@@ -156,7 +177,7 @@ namespace PasswordChange.ViewModel
                 for (int count = 0; count < TimesToChange; ++count)
                 {
                     newPassword = originalPassword + count.ToString();
-                    await _service.ChangePassword(UserName, currentPassword, newPassword);
+                    await service.ChangePassword(UserName, currentPassword, newPassword);
                     currentPassword = newPassword;
 
                     TimesChanged = count + 1;
@@ -174,19 +195,19 @@ namespace PasswordChange.ViewModel
                     }
 
                     if (delay > 0)
-                        await _service.Sleep(delay);
+                        await service.Sleep(delay);
                 }
 
                 // Change back to original password
                 newPassword = originalPassword;
-                await _service.ChangePassword(UserName, currentPassword, newPassword);
+                await service.ChangePassword(UserName, currentPassword, newPassword);
 
                 BusyStatus = "Done";
                 IsBusy = false;
             }
             catch (Exception ex)
             {
-                Log.ErrorException(string.Format("Unexpected exception thrown while trying to change password from {0} to {1}.",
+                log.ErrorException(string.Format("Unexpected exception thrown while trying to change password from {0} to {1}.",
                     currentPassword, newPassword), ex);
             }
             finally
