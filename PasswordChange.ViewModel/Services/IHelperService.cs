@@ -5,5 +5,6 @@
         System.Threading.Tasks.Task ChangePassword(string userName, string oldPassword, string newPassword);
         string GetDefaultUserName();
         System.Threading.Tasks.Task Sleep(int milliseconds);
+        double GetRandomMultiplier();
     }
 }

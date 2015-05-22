@@ -3,11 +3,15 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:extToolkit="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:local="clr-namespace:PasswordChange.View"
+        xmlns:cvt="clr-namespace:PasswordChange.View.Converters"
+        xmlns:fa="http://schemas.fontawesome.io/icons/"
         Title="Multi Password Changer (FM)" SizeToContent="Height" Width="400"
+        WindowStyle="ToolWindow" ResizeMode="NoResize"
         Icon="pack://application:,,,/Images/preferences_desktop_cryptography_large.ico"
         DataContext="{Binding Source={StaticResource VML}, Path=PasswordChangeViewModel}">
     <Window.Resources>
-        <BooleanToVisibilityConverter x:Key="boolToVis" />
+        <cvt:BooleanToVisibilityConverter x:Key="boolToVis" True="Visible" False="Collapsed" />
+        <cvt:BooleanToVisibilityConverter x:Key="revBoolToVis" True="Collapsed" False="Visible" />
     </Window.Resources>
     <extToolkit:BusyIndicator IsBusy="{Binding IsBusy}" BusyContent="{Binding BusyStatus}">
         <extToolkit:BusyIndicator.ProgressBarStyle>
@@ -36,13 +40,13 @@
 
                 <!-- Row 0 -->
                 <Label Grid.Row="0" Grid.Column="0" Content="User Name:" HorizontalAlignment="Right" Margin="0,3" />
-                <TextBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding UserName}" Margin="5" />
+                <TextBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding UserName}" Margin="3" />
 
                 <!-- Row 1 -->
                 <Label Grid.Row="1" Grid.Column="0" Content="Password:" HorizontalAlignment="Right" Margin="0,3" />
                 <Grid Grid.Row="1" Grid.Column="1">
                     <PasswordBox local:PasswordBoxHelper.BindPassword="True"
-                             local:PasswordBoxHelper.BoundPassword="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="5">
+                             local:PasswordBoxHelper.BoundPassword="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="3">
                         <PasswordBox.Style>
                             <Style TargetType="PasswordBox">
                                 <Style.Triggers>
@@ -54,23 +58,51 @@
                         </PasswordBox.Style>
                     </PasswordBox>
                     <TextBox Text="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             Visibility="{Binding ElementName=btnShowPassword, Path=IsChecked, Converter={StaticResource boolToVis}}" Margin="5" />
+                             Visibility="{Binding ElementName=btnShowPassword, Path=IsChecked, Converter={StaticResource boolToVis}}" Margin="3" />
                 </Grid>
-                <ToggleButton Name="btnShowPassword" Grid.Row="1" Grid.Column="2" Margin="5">Show</ToggleButton>
+                <ToggleButton Name="btnShowPassword" Grid.Row="1" Grid.Column="2" Margin="3">
+                    <Grid>
+                        <StackPanel Orientation="Horizontal" Visibility="{Binding ElementName=btnShowPassword, Path=IsChecked, Converter={StaticResource revBoolToVis}}">
+                            <fa:ImageAwesome Width="16" Icon="Eye" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                            <TextBlock Margin="3,0,0,0">Show</TextBlock>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Visibility="{Binding ElementName=btnShowPassword, Path=IsChecked, Converter={StaticResource boolToVis}}">
+                            <fa:ImageAwesome Width="16" Icon="EyeSlash" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                            <TextBlock Margin="3,0,0,0">Hide</TextBlock>
+                        </StackPanel>
+                    </Grid>
+                </ToggleButton>
 
                 <!-- Row 2 -->
                 <Label Grid.Row="2" Grid.Column="0" Content="# of times to change:" HorizontalAlignment="Right" Margin="0,3" />
                 <extToolkit:IntegerUpDown Name="nudTimesChanged" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2"
-                                          FormatString="N0" Increment="1" Minimum="1" Maximum="1000" Value="{Binding TimesToChange}" Margin="5" />
+                                          FormatString="N0" Increment="1" Minimum="1" Maximum="1000" Value="{Binding TimesToChange}" Margin="3" />
                 
                 <!-- Row 3 -->
                 <Label Grid.Row="3" Grid.Column="0" Content="Delay (s):" HorizontalAlignment="Right" Margin="0,3" />
-                <extToolkit:DecimalUpDown Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Minimum="0.0" Maximum="30.0" Value="{Binding Delay}" Increment="0.1" Margin="5" />
+                <extToolkit:DecimalUpDown Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Minimum="0.0" Maximum="30.0" Value="{Binding Delay}" Increment="0.1" Margin="3" />
                 
                 <!-- Row 4 -->
-                <CheckBox Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" IsChecked="{Binding RandomizeDelay}">Randomize Delay</CheckBox>
+                <CheckBox Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" Margin="3" IsChecked="{Binding RandomizeDelay}">Randomize Delay</CheckBox>
             </Grid>
-            <Button Margin="5" Command="{Binding GoCommand}">Go!</Button>
+            
+            <Button Margin="3" Command="{Binding GoCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <fa:ImageAwesome Icon="Check" Width="16" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <fa:ImageAwesome.Style>
+                            <Style TargetType="Image">
+                                <Setter Property="Opacity" Value="1.0" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=IsEnabled, UpdateSourceTrigger=PropertyChanged}" Value="False">
+                                        <Setter Property="Opacity" Value="0.3" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </fa:ImageAwesome.Style>
+                    </fa:ImageAwesome>
+                    <TextBlock Margin="3,0,0,0">Go!</TextBlock>
+                </StackPanel>
+            </Button>
         </StackPanel>
     </extToolkit:BusyIndicator>
 </Window>

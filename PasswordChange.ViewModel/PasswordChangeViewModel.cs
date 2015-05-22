@@ -1,10 +1,9 @@
-﻿using System;
-using System.ComponentModel.Composition;
-using System.Threading.Tasks;
-using GalaSoft.MvvmLight;
+﻿using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using NLog;
 using PasswordChange.ViewModel.Services;
+using System;
+using System.ComponentModel.Composition;
 
 namespace PasswordChange.ViewModel
 {
@@ -165,7 +164,6 @@ namespace PasswordChange.ViewModel
             string originalPassword = this.Password;
             string currentPassword = originalPassword;
             string newPassword = "";
-            Random rand = new Random();
 
             try
             {
@@ -173,7 +171,6 @@ namespace PasswordChange.ViewModel
                 this.BusyStatus = string.Format("{0}/{1}", this.TimesChanged, this.TimesToChange);
                 this.IsBusy = true;
 
-                int localDelay = Convert.ToInt32((double)Delay * 1000);
                 for (int count = 0; count < TimesToChange; ++count)
                 {
                     newPassword = originalPassword + count.ToString();
@@ -183,16 +180,11 @@ namespace PasswordChange.ViewModel
                     this.TimesChanged = count + 1;
                     this.BusyStatus = string.Format("{0}/{1}", this.TimesChanged, this.TimesToChange);
 
+                    int localDelay;
                     if (RandomizeDelay)
-                    {
-                        double multiplier;
-                        if (rand.NextDouble() < 0.5)
-                            multiplier = (rand.NextDouble() / 2) + 0.5;
-                        else // more than delay
-                            multiplier = (rand.NextDouble() * 4) + 1;
-
-                        localDelay = Convert.ToInt32((double)this.Delay * multiplier * 1000);
-                    }
+                        localDelay = Convert.ToInt32((double)this.Delay * this.service.GetRandomMultiplier() * 1000);
+                    else
+                        localDelay = Convert.ToInt32((double)Delay * 1000);
 
                     if (localDelay > 0)
                         await this.service.Sleep(localDelay);
