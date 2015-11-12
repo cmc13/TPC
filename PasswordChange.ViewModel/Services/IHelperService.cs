@@ -6,5 +6,6 @@
         string GetDefaultUserName();
         System.Threading.Tasks.Task Sleep(int milliseconds);
         double GetRandomMultiplier();
+        void ShowErrorDialog(string message, string title);
     }
 }

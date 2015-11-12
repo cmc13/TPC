@@ -2,6 +2,7 @@
 using System.ComponentModel.Composition;
 using System.DirectoryServices.AccountManagement;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace PasswordChange.ViewModel.Services
 {
@@ -40,6 +41,11 @@ namespace PasswordChange.ViewModel.Services
             else // more than delay
                 multiplier = (rand.NextDouble() * 4) + 1;
             return multiplier;
+        }
+
+        public void ShowErrorDialog(string message, string title)
+        {
+            MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 }

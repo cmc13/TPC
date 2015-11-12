@@ -4,6 +4,7 @@ using NLog;
 using PasswordChange.ViewModel.Services;
 using System;
 using System.ComponentModel.Composition;
+using System.Text;
 
 namespace PasswordChange.ViewModel
 {
@@ -18,10 +19,10 @@ namespace PasswordChange.ViewModel
         private string password = "";
         private int timesToChange = 30;
         private decimal delay = 1.0m;
-        private bool randomizeDelay;
+        private bool randomizeDelay = false;
         private bool isBusy = false;
         private string busyStatus = "";
-        private int timesChanged;
+        private int timesChanged = 0;
 
         #endregion
 
@@ -31,14 +32,14 @@ namespace PasswordChange.ViewModel
         public PasswordChangeViewModel(IHelperService helperService)
         {
             if (helperService == null)
-                throw new ArgumentNullException("helperService");
+                throw new ArgumentNullException(nameof(helperService));
 
             this.service = helperService;
 
             this.userName = this.service.GetDefaultUserName();
 
             this.GoCommand = new RelayCommand(ChangePassword,
-                () => !string.IsNullOrEmpty(this.UserName) && !string.IsNullOrEmpty(this.Password));
+                () => !string.IsNullOrWhiteSpace(this.UserName) && !string.IsNullOrWhiteSpace(this.Password));
         }
 
         #endregion
@@ -159,6 +160,8 @@ namespace PasswordChange.ViewModel
 
         #endregion
 
+        #region Private Function Definitions
+
         private async void ChangePassword()
         {
             string originalPassword = this.Password;
@@ -195,17 +198,40 @@ namespace PasswordChange.ViewModel
                 await this.service.ChangePassword(this.UserName, currentPassword, newPassword);
 
                 this.BusyStatus = "Done";
-                this.IsBusy = false;
+            }
+            catch (AggregateException agEx)
+            {
+                for (var i = 0; i < agEx.InnerExceptions.Count; ++i)
+                {
+                    for (var ex = agEx.InnerExceptions[i]; ex != null; ex = ex.InnerException)
+                        log.ErrorException($"[{i}]: Unexpected exception thrown while trying to change password from {currentPassword} to {newPassword}.", ex);
+                }
+
+                var messageBuilder = new StringBuilder();
+                if (agEx.InnerExceptions.Count > 1)
+                    messageBuilder.Append($"There were multipler exceptions while trying trying to change your password ({currentPassword} => {newPassword}).");
+                else
+                    messageBuilder.Append($"An exception occurred while trying to change your password ({currentPassword} => {newPassword}).");
+
+                var fEx = agEx.InnerExceptions[0];
+                messageBuilder.Append($" The message received was: {fEx.Message}. Check the log for additional details");
+
+                service.ShowErrorDialog(messageBuilder.ToString(), "Exception");
             }
             catch (Exception ex)
             {
-                log.ErrorException(string.Format("Unexpected exception thrown while trying to change password from {0} to {1}.",
-                    currentPassword, newPassword), ex);
+                for (var lEx = ex; lEx != null; lEx = lEx.InnerException)
+                    log.ErrorException($"Unexpected exception thrown while trying to change password from {currentPassword} to {newPassword}.", lEx);
+                service.ShowErrorDialog($"An exception occurred while trying to change your password ({currentPassword} => {newPassword}). The message received was: {ex.Message}. Check the log for additional details.",
+                    "Exception");
             }
             finally
             {
                 this.Password = "";
+                this.IsBusy = false;
             }
         }
+
+        #endregion
     }
 }
