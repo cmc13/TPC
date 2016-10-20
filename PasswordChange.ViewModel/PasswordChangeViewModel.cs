@@ -204,25 +204,25 @@ namespace PasswordChange.ViewModel
                 for (var i = 0; i < agEx.InnerExceptions.Count; ++i)
                 {
                     for (var ex = agEx.InnerExceptions[i]; ex != null; ex = ex.InnerException)
-                        log.ErrorException($"[{i}]: Unexpected exception thrown while trying to change password from {currentPassword} to {newPassword}.", ex);
+                        log.Error(ex, "[{0}]: Unexpected exception thrown while trying to change password from {1} to {2}.", i, currentPassword, newPassword);
                 }
 
                 var messageBuilder = new StringBuilder();
                 if (agEx.InnerExceptions.Count > 1)
-                    messageBuilder.Append($"There were multipler exceptions while trying trying to change your password ({currentPassword} => {newPassword}).");
+                    messageBuilder.AppendFormat("There were multipler exceptions while trying trying to change your password ({0} => {1}).", currentPassword, newPassword);
                 else
-                    messageBuilder.Append($"An exception occurred while trying to change your password ({currentPassword} => {newPassword}).");
+                    messageBuilder.AppendFormat("An exception occurred while trying to change your password ({0} => {1}).", currentPassword, newPassword);
 
                 var fEx = agEx.InnerExceptions[0];
-                messageBuilder.Append($" The message received was: {fEx.Message}. Check the log for additional details");
+                messageBuilder.Append(" The message received was: {fEx.Message}. Check the log for additional details");
 
                 service.ShowErrorDialog(messageBuilder.ToString(), "Exception");
             }
             catch (Exception ex)
             {
                 for (var lEx = ex; lEx != null; lEx = lEx.InnerException)
-                    log.ErrorException($"Unexpected exception thrown while trying to change password from {currentPassword} to {newPassword}.", lEx);
-                service.ShowErrorDialog($"An exception occurred while trying to change your password ({currentPassword} => {newPassword}). The message received was: {ex.Message}. Check the log for additional details.",
+                    log.Error(lEx, "Unexpected exception thrown while trying to change password from {0} to {1}.", currentPassword, newPassword);
+                service.ShowErrorDialog(string.Format("An exception occurred while trying to change your password ({0} => {1}). The message received was: {2}. Check the log for additional details.", currentPassword, newPassword, ex.Message),
                     "Exception");
             }
             finally
